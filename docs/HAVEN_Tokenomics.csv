@@ -1,0 +1,96 @@
+Category,Variable,Value,Formula,Description
+TOKEN IDENTITY,Name,HAVEN,,PVT ecosystem token
+TOKEN IDENTITY,Symbol,HNV,,Short ticker (clean tradable)
+TOKEN IDENTITY,Type,Utility Token,,Non-security multi-platform use
+TOKEN IDENTITY,Blockchain,Base (Layer-2),,Ethereum compatible OP Stack
+TOKEN IDENTITY,Token Standard,ERC-20,,Standard fungible token
+
+SUPPLY,Total Supply,1000000000,,Fixed cap (1 billion)
+SUPPLY,Circulating Supply,100000000,=Total Supply * 0.10,10% initially released
+SUPPLY,Burn Rate,0.02,,2% per redemption event
+SUPPLY,Inflation,0,,Fixed no further minting beyond cap
+
+DISTRIBUTION,PVT Ecosystem,300000000,=Total Supply * 0.30,Guest + staff rewards (30%)
+DISTRIBUTION,Hostels United,200000000,=Total Supply * 0.20,Network integration (20%)
+DISTRIBUTION,Aurora/Tribe,200000000,=Total Supply * 0.20,Software & engagement (20%)
+DISTRIBUTION,Founders/Treasury,150000000,=Total Supply * 0.15,Governance & long-term reserve (15%)
+DISTRIBUTION,Investors/Grants,100000000,=Total Supply * 0.10,Early partners (10%)
+DISTRIBUTION,Legal/Compliance,50000000,=Total Supply * 0.05,Regulatory and audits (5%)
+
+EMISSION SCHEDULE,Guest Rewards per Month,10000000,=IF(MONTH<=36 10000000 0),10M released per month for 3 years
+EMISSION SCHEDULE,Network Incentives per Month,8333333,=IF(MONTH<=24 8333333 0),8.33M per month for 2 years
+EMISSION SCHEDULE,Total Guest Emissions (36 mo),360000000,=10000000 * 36,Total guest reward pool over 3 years
+EMISSION SCHEDULE,Total Network Emissions (24 mo),200000000,=8333333 * 24,Total network incentive pool over 2 years
+EMISSION SCHEDULE,Burn Tracker,Variable,=SUM(RedemptionTxns) * 0.02,Aggregate burned supply
+
+VALUATION METRICS,Base Unit Value (CAD),0.10,,Initial pegged conversion
+VALUATION METRICS,Max Market Cap (CAD),100000000,=Total Supply * Base Unit Value,100M CAD theoretical cap
+VALUATION METRICS,Circulating Cap (CAD),10000000,=Circulating Supply * Base Unit Value,10M CAD at launch
+VALUATION METRICS,HNV to USD Rate,0.07,=Base Unit Value * 0.73,Approximate USD value (CAD to USD ~0.73)
+
+GOVERNANCE CONTROLS,DAO Voting Weight,Variable,=HNV_Balance / Total_Circulation,Decentralized governance participation
+GOVERNANCE CONTROLS,Treasury Reserve,150000000,=Total Supply * 0.15,Multi-sig controlled reserve
+GOVERNANCE CONTROLS,Timelock Duration,7 days,,Governance proposal timelock
+GOVERNANCE CONTROLS,Max Monthly Mint Cap,100000,=100000 * 10^18 wei,Safety mechanism in smart contract
+
+REWARD RATES,Stay Reward,2 HNV/CAD,,For direct bookings
+REWARD RATES,Review Bonus,50 HNV,,Per verified review
+REWARD RATES,Referral Basic,100 HNV,,Tier 1 referral
+REWARD RATES,Referral Silver,250 HNV,,Tier 2 referral
+REWARD RATES,Referral Gold,500 HNV,,Tier 3 referral
+REWARD RATES,Aurora Milestone Basic,100 HNV,,Basic automation milestone
+REWARD RATES,Aurora Milestone Advanced,250 HNV,,Advanced milestone
+REWARD RATES,Tribe Event (General),25 HNV,,General event participation
+REWARD RATES,Tribe Event (Networking),50 HNV,,Networking event
+REWARD RATES,Tribe Event (Workshop),75 HNV,,Workshop attendance
+REWARD RATES,Tribe Event (Wisdom Circle),100 HNV,,Premium event
+REWARD RATES,Tribe Contribution (Comment),5 HNV,,Comment/reply
+REWARD RATES,Tribe Contribution (Post),10 HNV,,Forum post
+REWARD RATES,Tribe Contribution (Resource),15 HNV,,Resource sharing
+REWARD RATES,Tribe Contribution (Guide),25 HNV,,Full guide creation
+REWARD RATES,Coaching Basic,100 HNV,,Basic coaching milestone
+REWARD RATES,Coaching Intermediate,175 HNV,,Intermediate milestone
+REWARD RATES,Coaching Advanced,250 HNV,,Advanced milestone
+REWARD RATES,Staking APY,0.10,,10% annual percentage yield
+REWARD RATES,Staking Weekly Rate,0.00192,=Staking APY / 52,0.192% per week
+
+TRANSACTION COSTS,Estimated Gas (Mint),150000 gas,,Estimated gas for mint operation
+TRANSACTION COSTS,Estimated Gas (Burn),100000 gas,,Estimated gas for burn operation
+TRANSACTION COSTS,Base Gas Price,0.001 gwei,,Typical Base network gas price
+TRANSACTION COSTS,Cost per Mint (USD),0.00015,=150000 * 0.001 * 10^-9 * ETH_USD,~$0.00015 per mint on Base
+TRANSACTION COSTS,Cost per Burn (USD),0.0001,=100000 * 0.001 * 10^-9 * ETH_USD,~$0.0001 per burn on Base
+
+COMPLIANCE,Token Classification,Utility (Non-Security),,Canadian CSA & FINTRAC compliant
+COMPLIANCE,KYC Required,Yes (for fiat off-ramp),,Required for CAD/USD withdrawal
+COMPLIANCE,AML Monitoring,Enabled,,Transaction monitoring for compliance
+COMPLIANCE,Audit Status,Pending,,Smart contract audit by CertiK/Code4rena
+COMPLIANCE,Legal Opinion,In Progress,,Token classification legal memo
+
+ECOSYSTEM INTEGRATION,Aurora PMS,Active,,Property management system integration
+ECOSYSTEM INTEGRATION,Tribe App,Active,,Community engagement platform
+ECOSYSTEM INTEGRATION,WisdomOS,Planned,,Fulfillment tracking system
+ECOSYSTEM INTEGRATION,Hostels United,Planned Q4 2026,,Network-wide settlement layer
+ECOSYSTEM INTEGRATION,Wallet,Coinbase Wallet / PVT Wallet,,White-labeled wallet interface
+
+ROADMAP MILESTONES,Alpha Launch,Q1 2026,,Token contract + wallet
+ROADMAP MILESTONES,Beta Launch,Q2 2026,,PVT Hostel + Tribe integration
+ROADMAP MILESTONES,Public Launch,Q4 2026,,Hostels United DAO
+ROADMAP MILESTONES,Network Expansion,2027,,Full Aurora adoption across network
+
+RISK MITIGATION,Emergency Pause,Enabled,,PAUSER_ROLE can halt operations
+RISK MITIGATION,Role-Based Access,Enabled,,MINTER/BURNER roles restricted
+RISK MITIGATION,Governance Timelock,7 days,,Protection against hasty changes
+RISK MITIGATION,Burn Mechanism,2% per redemption,,Deflationary pressure for stability
+RISK MITIGATION,Multi-Sig Treasury,Gnosis Safe,,Multi-signature wallet for reserves
+
+PROJECTED METRICS (Year 1),Active Users,10000,,Conservative estimate
+PROJECTED METRICS (Year 1),Average Holdings per User,1000 HNV,,10M circulating / 10k users
+PROJECTED METRICS (Year 1),Monthly Transactions,50000,,Estimated transaction volume
+PROJECTED METRICS (Year 1),Redemption Rate,0.15,,15% redemption rate
+PROJECTED METRICS (Year 1),Tokens Burned (Year 1),3000000,=10000000 * 12 * 0.15 * 0.02,Estimated burn from redemptions
+
+PROJECTED METRICS (Year 3),Active Users,100000,,Growth projection
+PROJECTED METRICS (Year 3),Circulating Supply,500000000,,50% of total supply released
+PROJECTED METRICS (Year 3),Market Cap (CAD),50000000,=500000000 * 0.10,Based on initial valuation
+PROJECTED METRICS (Year 3),Tokens Burned (Cumulative),25000000,,Estimated cumulative burn
+PROJECTED METRICS (Year 3),Effective Circulating,475000000,=500000000 - 25000000,After burn reduction

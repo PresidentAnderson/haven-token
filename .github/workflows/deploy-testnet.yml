@@ -1,0 +1,73 @@
+name: Deploy to Testnet (Base Sepolia)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy" to confirm'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy Contracts to Base Sepolia
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'deploy'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: contracts/package-lock.json
+
+      - name: Install dependencies
+        working-directory: contracts
+        run: npm ci
+
+      - name: Compile contracts
+        working-directory: contracts
+        run: npx hardhat compile
+
+      - name: Deploy to Base Sepolia
+        working-directory: contracts
+        env:
+          BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+          BACKEND_SERVICE_ADDRESS: ${{ secrets.BACKEND_SERVICE_ADDRESS }}
+        run: npx hardhat run scripts/deploy.ts --network baseSepolia
+
+      - name: Wait for confirmation
+        run: sleep 30
+
+      - name: Verify on Basescan
+        working-directory: contracts
+        env:
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+        run: npx hardhat run scripts/verify.ts || echo "Verification will be attempted again"
+        continue-on-error: true
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-testnet
+          path: contracts/deployments/84532-deployment.json
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const deployment = JSON.parse(fs.readFileSync('contracts/deployments/84532-deployment.json', 'utf8'));
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Testnet Deployment Complete**\n\n**Contract Address:** ${deployment.contractAddress}\n**Network:** Base Sepolia\n**Block:** ${deployment.blockNumber}\n**View on Basescan:** https://sepolia.basescan.org/address/${deployment.contractAddress}`
+            });

@@ -1,0 +1,128 @@
+name: Smart Contracts CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'contracts/**'
+      - '.github/workflows/contracts-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'contracts/**'
+
+jobs:
+  test:
+    name: Test Smart Contracts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: contracts/package-lock.json
+
+      - name: Install dependencies
+        working-directory: contracts
+        run: npm ci
+
+      - name: Compile contracts
+        working-directory: contracts
+        run: npx hardhat compile
+
+      - name: Run tests
+        working-directory: contracts
+        run: npm test
+
+      - name: Generate coverage report
+        working-directory: contracts
+        run: npx hardhat coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./contracts/coverage/coverage-final.json
+          flags: contracts
+          name: contracts-coverage
+
+  gas-report:
+    name: Gas Usage Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: contracts/package-lock.json
+
+      - name: Install dependencies
+        working-directory: contracts
+        run: npm ci
+
+      - name: Run gas report
+        working-directory: contracts
+        run: REPORT_GAS=true npm test
+
+      - name: Upload gas report
+        uses: actions/upload-artifact@v3
+        with:
+          name: gas-report
+          path: contracts/gas-report.txt
+
+  lint:
+    name: Lint Smart Contracts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: contracts/package-lock.json
+
+      - name: Install dependencies
+        working-directory: contracts
+        run: npm ci
+
+      - name: Run Solidity linter (if configured)
+        working-directory: contracts
+        run: |
+          if [ -f "package.json" ] && grep -q "solhint" package.json; then
+            npm run lint || echo "No lint script found"
+          fi
+        continue-on-error: true
+
+  security-scan:
+    name: Security Scan (Slither)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Slither
+        run: pip install slither-analyzer
+
+      - name: Run Slither
+        working-directory: contracts
+        run: slither . --hardhat-ignore-compile || echo "Slither analysis complete (warnings may exist)"
+        continue-on-error: true

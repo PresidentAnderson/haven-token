@@ -1,0 +1,190 @@
+# ============================================================================
+# HAVEN Token Platform - Crontab Configuration
+# ============================================================================
+#
+# This file contains scheduled tasks for the HAVEN Token platform.
+#
+# Installation:
+#   1. Review and customize paths and parameters
+#   2. Install: crontab < crontab.example
+#   3. Verify: crontab -l
+#
+# Environment Variables:
+#   Load from /opt/haven/.env or set here
+# ============================================================================
+
+# Set shell and path
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+MAILTO=ops@haventoken.com
+
+# Environment file (loads DB credentials, API keys, etc.)
+ENV_FILE=/opt/haven/.env
+
+# ============================================================================
+# DATABASE BACKUPS
+# ============================================================================
+
+# Full database backup - Daily at 2:00 AM UTC
+# Retention: 30 days
+# Includes: Encryption + S3 upload
+0 2 * * * . ${ENV_FILE} && /opt/haven/scripts/backup_database.sh --type full --encrypt --s3-upload --retention 30 >> /var/log/haven/backup.log 2>&1
+
+# Incremental backup - Every 6 hours
+# Retention: 7 days
+0 */6 * * * . ${ENV_FILE} && /opt/haven/scripts/backup_database.sh --type incremental --s3-upload --retention 7 >> /var/log/haven/backup.log 2>&1
+
+# Weekly full backup with extended retention (Sundays at 3:00 AM)
+# Retention: 90 days
+0 3 * * 0 . ${ENV_FILE} && /opt/haven/scripts/backup_database.sh --type full --encrypt --s3-upload --retention 90 >> /var/log/haven/backup.log 2>&1
+
+# Monthly full backup (1st of month at 4:00 AM)
+# Retention: 365 days
+0 4 1 * * . ${ENV_FILE} && /opt/haven/scripts/backup_database.sh --type full --encrypt --s3-upload --retention 365 >> /var/log/haven/backup.log 2>&1
+
+# ============================================================================
+# BACKUP VERIFICATION
+# ============================================================================
+
+# Daily backup verification - 3:00 AM UTC (after full backup completes)
+# Verifies: File integrity, checksum, compression
+0 3 * * * . ${ENV_FILE} && /opt/haven/scripts/verify_backup.sh --latest --send-report >> /var/log/haven/verify.log 2>&1
+
+# Weekly full restore test - Sundays at 5:00 AM (after weekly backup)
+# Performs: Complete restoration test to verify recoverability
+0 5 * * 0 . ${ENV_FILE} && /opt/haven/scripts/verify_backup.sh --latest --full-restore-test --send-report >> /var/log/haven/verify.log 2>&1
+
+# ============================================================================
+# BLOCKCHAIN SYNCHRONIZATION
+# ============================================================================
+
+# Sync Aurora bookings - Daily at 2:00 AM UTC
+# Fallback sync for any missed webhooks
+0 2 * * * . ${ENV_FILE} && cd /opt/haven/backend && python -c "from app import sync_aurora_bookings_job; import asyncio; asyncio.run(sync_aurora_bookings_job())" >> /var/log/haven/sync.log 2>&1
+
+# Sync Tribe events - Daily at 4:00 AM UTC
+0 4 * * * . ${ENV_FILE} && cd /opt/haven/backend && python -c "from app import sync_tribe_events_job; import asyncio; asyncio.run(sync_tribe_events_job())" >> /var/log/haven/sync.log 2>&1
+
+# Calculate staking rewards - Weekly on Mondays at 3:00 AM UTC
+0 3 * * 1 . ${ENV_FILE} && cd /opt/haven/backend && python -c "from app import calculate_staking_rewards_job; import asyncio; asyncio.run(calculate_staking_rewards_job())" >> /var/log/haven/staking.log 2>&1
+
+# ============================================================================
+# SYSTEM MAINTENANCE
+# ============================================================================
+
+# Database connection pool monitoring - Every hour
+0 * * * * . ${ENV_FILE} && cd /opt/haven/backend && python -c "from database.connection import log_pool_status; log_pool_status()" >> /var/log/haven/pool.log 2>&1
+
+# Clean old logs - Daily at 1:00 AM UTC
+# Removes logs older than 30 days
+0 1 * * * find /var/log/haven -name "*.log" -mtime +30 -delete
+
+# Rotate application logs - Daily at 1:30 AM UTC
+30 1 * * * /usr/sbin/logrotate /etc/logrotate.d/haven
+
+# Clean old backup logs - Weekly on Sundays at 1:00 AM
+0 1 * * 0 find /var/backups/haven/logs -name "*.log" -mtime +90 -delete
+
+# ============================================================================
+# MONITORING & HEALTH CHECKS
+# ============================================================================
+
+# Health check - Every 5 minutes
+# Alerts if service is down
+*/5 * * * * curl -sf https://api.haventoken.com/health > /dev/null || echo "API health check failed" | mail -s "HAVEN API Down" ops@haventoken.com
+
+# Database health check - Every 15 minutes
+*/15 * * * * . ${ENV_FILE} && cd /opt/haven/backend && python -c "from database.connection import check_database_health; healthy, msg = check_database_health(); print(f'DB Health: {msg}'); exit(0 if healthy else 1)" >> /var/log/haven/health.log 2>&1 || echo "DB health check failed" | mail -s "HAVEN DB Health Alert" ops@haventoken.com
+
+# Blockchain RPC health check - Every 30 minutes
+*/30 * * * * . ${ENV_FILE} && cd /opt/haven/backend && python -c "from services.token_agent import token_agent; supply = token_agent.get_total_supply(); print(f'Supply: {supply}')" >> /var/log/haven/blockchain.log 2>&1 || echo "Blockchain RPC failed" | mail -s "HAVEN Blockchain Alert" ops@haventoken.com
+
+# ============================================================================
+# REPORTING & ANALYTICS
+# ============================================================================
+
+# Daily metrics report - 9:00 AM UTC
+# Generates daily statistics
+0 9 * * * . ${ENV_FILE} && cd /opt/haven/backend && python scripts/generate_daily_report.py >> /var/log/haven/reports.log 2>&1
+
+# Weekly summary report - Mondays at 10:00 AM UTC
+# Sends to stakeholders via email
+0 10 * * 1 . ${ENV_FILE} && cd /opt/haven/backend && python scripts/generate_weekly_report.py --send-email >> /var/log/haven/reports.log 2>&1
+
+# Monthly metrics - 1st of month at 11:00 AM UTC
+0 11 1 * * . ${ENV_FILE} && cd /opt/haven/backend && python scripts/generate_monthly_report.py --send-email >> /var/log/haven/reports.log 2>&1
+
+# ============================================================================
+# SECURITY
+# ============================================================================
+
+# Check for failed login attempts - Every hour
+0 * * * * grep "Failed password" /var/log/auth.log | tail -50 > /tmp/failed_logins.txt && [ -s /tmp/failed_logins.txt ] && mail -s "Failed Login Attempts" security@haventoken.com < /tmp/failed_logins.txt
+
+# Scan for suspicious activity - Every 6 hours
+0 */6 * * * . ${ENV_FILE} && cd /opt/haven/backend && python scripts/security_scan.py >> /var/log/haven/security.log 2>&1
+
+# Update SSL certificates - Daily at 3:00 AM (certbot auto-renewal)
+0 3 * * * certbot renew --quiet --post-hook "systemctl reload nginx"
+
+# ============================================================================
+# CLEANUP & OPTIMIZATION
+# ============================================================================
+
+# Database vacuum - Weekly on Sundays at 6:00 AM UTC
+# Reclaims space and updates statistics
+0 6 * * 0 . ${ENV_FILE} && vacuumdb -h ${DB_HOST} -U ${DB_USER} -d ${DB_NAME} --analyze --verbose >> /var/log/haven/vacuum.log 2>&1
+
+# Clear Redis cache - Daily at 2:30 AM UTC
+30 2 * * * redis-cli FLUSHDB >> /var/log/haven/redis.log 2>&1
+
+# Clear temp files - Daily at 1:45 AM UTC
+45 1 * * * find /tmp/haven -type f -mtime +7 -delete
+
+# ============================================================================
+# DEPENDENCY UPDATES (Use with caution in production)
+# ============================================================================
+
+# Check for security updates - Daily at 7:00 AM UTC
+# Reports but does not auto-apply
+# 0 7 * * * apt-get update && apt-cache policy | grep -i security > /tmp/security_updates.txt && [ -s /tmp/security_updates.txt ] && mail -s "Security Updates Available" ops@haventoken.com < /tmp/security_updates.txt
+
+# ============================================================================
+# DISASTER RECOVERY TESTING
+# ============================================================================
+
+# Monthly DR drill - 1st Sunday of month at 8:00 AM UTC
+# Uncomment to enable automated DR testing
+# 0 8 1-7 * 0 . ${ENV_FILE} && /opt/haven/scripts/dr_drill.sh --automated >> /var/log/haven/dr.log 2>&1
+
+# ============================================================================
+# CUSTOM TASKS
+# ============================================================================
+
+# Example: Custom token emission report
+# 0 12 * * * . ${ENV_FILE} && cd /opt/haven/backend && python scripts/emission_report.py >> /var/log/haven/emission.log 2>&1
+
+# Example: User engagement metrics
+# 0 13 * * * . ${ENV_FILE} && cd /opt/haven/backend && python scripts/user_engagement.py >> /var/log/haven/engagement.log 2>&1
+
+# ============================================================================
+# NOTES
+# ============================================================================
+#
+# Timezone: All times are in UTC
+# Log Location: /var/log/haven/
+# Backup Location: /var/backups/haven/
+# S3 Backup: s3://haven-backups/
+#
+# Emergency Contacts:
+#   - DevOps Lead: devops@haventoken.com
+#   - Security: security@haventoken.com
+#   - PagerDuty: ops@haventoken.pagerduty.com
+#
+# To view cron logs:
+#   sudo grep CRON /var/log/syslog
+#
+# To test a cron job manually:
+#   . /opt/haven/.env && /opt/haven/scripts/backup_database.sh --type full
+#
+# ============================================================================

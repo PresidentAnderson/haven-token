@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+*.pyc
+__pycache__/
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+artifacts/
+cache/
+dist/
+build/
+*.log
+typechain-types/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+coverage/
+.pytest_cache/
+
+# Deployment
+deployments/*.json
+!deployments/.gitkeep

@@ -7,6 +7,7 @@
 
 import { Navigation } from '@/components/Navigation';
 import { Hero } from '@/components/Hero';
+import { RealEstateBacking } from '@/components/RealEstateBacking';
 import { HowItWorks } from '@/components/HowItWorks';
 import { Tokenomics } from '@/components/Tokenomics';
 import { FAQ } from '@/components/FAQ';
@@ -24,6 +25,7 @@ export default function Home() {
         <Navigation />
         <NetworkStatus />
         <Hero />
+        <RealEstateBacking />
         <HowItWorks />
         <Tokenomics />
         <FAQ />

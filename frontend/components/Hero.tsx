@@ -76,7 +76,7 @@ export function Hero() {
           >
             <Sparkles className="w-4 h-4 text-white" />
             <span className="text-white text-sm font-medium">
-              Built on Base - Ethereum L2
+              Proprietary to PVT Hostel • Backed by Real Estate
             </span>
           </motion.div>
 
@@ -103,9 +103,9 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl sm:text-2xl text-white/90 mb-4 max-w-3xl mx-auto leading-relaxed"
           >
-            HAVEN Token is the blockchain-based loyalty program for the Puerto
-            Vallarta Tribe hospitality ecosystem. Earn tokens on bookings, stake
-            for rewards, and unlock exclusive perks.
+            HAVEN Token is PVT Hostel's proprietary blockchain-based loyalty program,
+            backed by real estate assets. Earn tokens on bookings, stake for rewards,
+            and unlock exclusive perks within our hospitality ecosystem.
           </motion.p>
 
           {/* Token Stats */}

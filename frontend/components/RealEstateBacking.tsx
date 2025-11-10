@@ -14,13 +14,13 @@ export function RealEstateBacking() {
       icon: Building2,
       title: 'Asset-Backed',
       description:
-        'HAVEN tokens are backed by PVT Hostel real estate holdings, providing tangible value and security.',
+        'HAVEN tokens are backed by PVT Holdings, Inc. real estate holdings, providing tangible value and security.',
     },
     {
       icon: Shield,
       title: 'PVT Proprietary',
       description:
-        'Exclusively owned and operated by PVT Hostel, ensuring alignment with our hospitality ecosystem.',
+        'Exclusively owned and operated by PVT Holdings, Inc., ensuring alignment with our hospitality ecosystem.',
     },
     {
       icon: TrendingUp,
@@ -63,7 +63,7 @@ export function RealEstateBacking() {
             </span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Unlike traditional loyalty points, HAVEN Token is backed by PVT Hostel's
+            Unlike traditional loyalty points, HAVEN Token is backed by PVT Holdings, Inc.'s
             growing real estate portfolio, providing genuine value and security to our
             community.
           </p>
@@ -114,7 +114,7 @@ export function RealEstateBacking() {
             Why Real Estate Backing Matters
           </h3>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-            PVT Hostel's real estate holdings provide a stable foundation for HAVEN Token's
+            PVT Holdings, Inc.'s real estate holdings provide a stable foundation for HAVEN Token's
             value. As we expand our property portfolio and improve our facilities, the
             underlying asset base grows, supporting long-term token appreciation while
             maintaining stable redemption values.
